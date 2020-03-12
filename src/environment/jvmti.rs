@@ -13,7 +13,6 @@ use super::super::native::jvmti_native::{Struct__jvmtiThreadInfo, jvmtiCapabilit
 use std::ptr;
 
 pub trait JVMTI {
-
     ///
     /// Return the JVM TI version number, which includes major, minor and micro version numbers.
     ///
@@ -40,7 +39,6 @@ pub trait JVMTI {
 }
 
 pub struct JVMTIEnvironment {
-
     jvmti: JVMTIEnvPtr
 }
 
@@ -51,7 +49,6 @@ impl JVMTIEnvironment {
 }
 
 impl JVMTI for JVMTIEnvironment {
-
     fn get_version_number(&self) -> VersionNumber {
         unsafe {
             let mut version: i32 = 0;
@@ -64,7 +61,7 @@ impl JVMTI for JVMTIEnvironment {
 
     fn add_capabilities(&mut self, new_capabilities: &Capabilities) -> Result<Capabilities, NativeError> {
         let native_caps = new_capabilities.to_native();
-        let caps_ptr:*const jvmtiCapabilities = &native_caps;
+        let caps_ptr: *const jvmtiCapabilities = &native_caps;
 
         unsafe {
             match wrap_error((**self.jvmti).AddCapabilities.unwrap()(self.jvmti, caps_ptr)) {
@@ -119,7 +116,10 @@ impl JVMTI for JVMTIEnvironment {
 
     fn set_event_notification_mode(&mut self, event: VMEvent, mode: bool) -> Option<NativeError> {
         unsafe {
-            let mode_i = match mode { true => 1, false => 0 };
+            let mode_i = match mode {
+                true => 1,
+                false => 0
+            };
             let sptr: JavaObject = ptr::null_mut();
 
             match wrap_error((**self.jvmti).SetEventNotificationMode.unwrap()(self.jvmti, mode_i, event as u32, sptr)) {
@@ -130,7 +130,7 @@ impl JVMTI for JVMTIEnvironment {
     }
 
     fn get_thread_info(&self, thread_id: &JavaThread) -> Result<Thread, NativeError> {
-        let mut info = Struct__jvmtiThreadInfo { name: ptr::null_mut(), priority: 0, is_daemon: 0, thread_group: ptr::null_mut(), context_class_loader: ptr::null_mut()};
+        let mut info = Struct__jvmtiThreadInfo { name: ptr::null_mut(), priority: 0, is_daemon: 0, thread_group: ptr::null_mut(), context_class_loader: ptr::null_mut() };
         let mut info_ptr = &mut info;
 
         unsafe {
@@ -141,11 +141,11 @@ impl JVMTI for JVMTIEnvironment {
                             id: ThreadId { native_id: *thread_id },
                             name: stringify((*info_ptr).name),
                             priority: (*info_ptr).priority as u32,
-                            is_daemon: if (*info_ptr).is_daemon > 0 { true } else { false }
+                            is_daemon: if (*info_ptr).is_daemon > 0 { true } else { false },
                         }),
-                        err@_ => Err(err)
+                        err @ _ => Err(err)
                     }
-                },
+                }
                 None => Err(NativeError::NoError)
             }
         }
@@ -209,7 +209,5 @@ impl JVMTI for JVMTIEnvironment {
         }
     }
 
-    fn deallocate(&self) {
-
-    }
+    fn deallocate(&self) {}
 }

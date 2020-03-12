@@ -1,4 +1,3 @@
-
 /// A type-safe representation of possible errors
 pub enum NativeError {
     NoError = 0,
@@ -10,8 +9,9 @@ pub enum NativeError {
     UnexpectedInternalError = 113,
     ThreadNotAttached = 115,
     Disconnected = 116,
-    NotImplemented = 999999, // <- now this is a "temporary" hack until the library is under heavy development
-    UnknownError
+    NotImplemented = 999999,
+    // <- now this is a "temporary" hack until the library is under heavy development
+    UnknownError,
 }
 
 /// Turn a native error code into a type-safe error
@@ -27,7 +27,10 @@ pub fn wrap_error(code: u32) -> NativeError {
         115 => NativeError::ThreadNotAttached,
         116 => NativeError::Disconnected,
         999999 => NativeError::NotImplemented,
-        _ => { println!("Unknown error code was detected: {}", code); NativeError::UnknownError }
+        _ => {
+            println!("Unknown error code was detected: {}", code);
+            NativeError::UnknownError
+        }
     }
 }
 

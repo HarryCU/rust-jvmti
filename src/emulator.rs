@@ -2,7 +2,7 @@ use super::capabilities::Capabilities;
 use super::class::{ClassId, ClassSignature};
 use super::error::NativeError;
 use super::environment::jvm::JVMF;
-use super::environment::jvmti::{JVMTI};
+use super::environment::jvmti::JVMTI;
 use super::event::{EventCallbacks, VMEvent};
 use super::mem::MemoryAllocation;
 use super::method::{MethodId, MethodSignature};
@@ -16,7 +16,7 @@ use std::collections::HashMap;
 pub struct JVMEmulator {
     pub capabilities: Capabilities,
     pub callbacks: EventCallbacks,
-    pub events: HashMap<VMEvent, bool>
+    pub events: HashMap<VMEvent, bool>,
 }
 
 impl JVMEmulator {
@@ -24,7 +24,7 @@ impl JVMEmulator {
         JVMEmulator {
             capabilities: Capabilities::new(),
             callbacks: EventCallbacks::new(),
-            events: HashMap::new()
+            events: HashMap::new(),
         }
     }
 
@@ -32,7 +32,7 @@ impl JVMEmulator {
         match self.callbacks.method_entry {
             Some(handler) => {
                 handler(event);
-            },
+            }
             _ => ()
         }
     }
@@ -49,7 +49,6 @@ impl JVMF for JVMEmulator {
 }
 
 impl JVMTI for JVMEmulator {
-
     fn get_version_number(&self) -> VersionNumber {
         VersionNumber::unknown()
     }
@@ -104,7 +103,5 @@ impl JVMTI for JVMEmulator {
         Ok(MemoryAllocation { ptr: ::std::ptr::null_mut(), len: len })
     }
 
-    fn deallocate(&self) {
-
-    }
+    fn deallocate(&self) {}
 }

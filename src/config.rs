@@ -1,18 +1,17 @@
 extern crate toml;
 
 use std::fs::File;
-use std::io::{ Read };
+use std::io::Read;
 use std::path::Path;
 
 #[derive(Deserialize)]
 pub struct Config {
     pub agent_name: String,
     pub entry_points: Vec<String>,
-    pub active_classes: Vec<String>
+    pub active_classes: Vec<String>,
 }
 
 impl Config {
-
     pub fn read_config() -> Option<Config> {
         let default_config: String = String::from("agent.conf");
 
@@ -28,19 +27,18 @@ impl Config {
                 let config: Config = toml::from_str(contents.as_str()).unwrap();
 
                 Some(config)
-            },
+            }
             _ => None
         }
     }
 }
 
 impl Default for Config {
-
     fn default() -> Self {
         Config {
             agent_name: String::from("default"),
             entry_points: vec![],
-            active_classes: vec![]
+            active_classes: vec![],
         }
     }
 }

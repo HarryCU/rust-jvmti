@@ -26,17 +26,19 @@ fn main() {
                     Ok(class) => {
                         match action.as_str() {
                             "read" => println!("{}", format!("{:#?}", class)),
-                            "print" => println!("{}", ClassfilePrinter::render_lines(&class).iter().map(|line| format!("{}\n", line)).fold(String::new(), |mut acc, x| { acc.push_str(x.as_str()); acc})),
+                            "print" => println!("{}", ClassfilePrinter::render_lines(&class).iter().map(|line| format!("{}\n", line)).fold(String::new(), |mut acc, x| {
+                                acc.push_str(x.as_str());
+                                acc
+                            })),
                             "counts" => println!("Class: {} Field count: {} Method count: {}", class_name, class.fields.len(), class.methods.len()),
                             "methods" => show_methods(class, class_name),
                             "write" => write_class(&class),
                             _ => println!("Unknown action: {}", action)
                         }
-                    },
+                    }
                     Err(err) => assert!(false, format!("{:?}", err))
                 }
-
-            },
+            }
             Err(err) => assert!(false, format!("{:?}", err))
         }
     } else {
@@ -54,7 +56,7 @@ fn write_class(class: &Classfile) {
     }
 }
 
-fn show_methods(class: Classfile, class_name: String ) {
+fn show_methods(class: Classfile, class_name: String) {
     class.methods.iter().map(|method| {
         method.attributes.iter().map(|a| {
             match a {
@@ -71,12 +73,11 @@ fn show_methods(class: Classfile, class_name: String ) {
                                     println!("Class: {} Method: {} Length: {}", class_name, method_name, last - first);
                                 }
                                 ()
-                            },
+                            }
                             _ => ()
                         }
-
                     }).fold(0, |_, _| 0);
-                },
+                }
                 _ => ()
             }/*
             */

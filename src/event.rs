@@ -71,7 +71,7 @@ pub enum VMEvent {
     CompiledMethodUnload = JVMTI_EVENT_COMPILED_METHOD_UNLOAD as isize,
     DynamicCodeGenerated = JVMTI_EVENT_DYNAMIC_CODE_GENERATED as isize,
     DataDumpRequest = JVMTI_EVENT_DATA_DUMP_REQUEST as isize,
-    ResourceExhausted = JVMTI_EVENT_RESOURCE_EXHAUSTED as isize
+    ResourceExhausted = JVMTI_EVENT_RESOURCE_EXHAUSTED as isize,
 }
 
 ///
@@ -110,11 +110,10 @@ pub struct EventCallbacks {
     pub compiled_method_unload: Option<FnCompiledMethodUnload>,
     pub dynamic_code_generated: Option<FnDynamicCodeGenerated>,
     pub data_dump_request: Option<FnDataDumpRequest>,
-    pub resource_exhausted: Option<FnResourceExhausted>
+    pub resource_exhausted: Option<FnResourceExhausted>,
 }
 
 impl EventCallbacks {
-
     pub fn new() -> EventCallbacks {
         EventCallbacks { ..Default::default() }
     }

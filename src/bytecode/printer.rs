@@ -45,7 +45,10 @@ impl ClassfilePrinter {
 
         // TODO implement other access flags
 
-        flag_vec.iter().fold(String::new(), |mut acc, x| { acc.push_str(x); acc })
+        flag_vec.iter().fold(String::new(), |mut acc, x| {
+            acc.push_str(x);
+            acc
+        })
     }
 
     pub fn render_constant_pool(constant_pool: &ConstantPool) -> Vec<String> {
@@ -361,33 +364,33 @@ impl ClassfilePrinter {
                 }).collect();
 
                 let _: Vec<()> = attributes.iter().flat_map(|att| ClassfilePrinter::render_attribute(att, cp)).map(|line| format!("  {}", line)).map(|line| lines.push(line)).collect();
-            },
+            }
             &Attribute::LineNumberTable(ref table) => {
                 lines.push(String::from("    LineNumberTable"));
 
                 let _: Vec<()> = ClassfilePrinter::render_line_number_table(table).iter().map(|line_number| lines.push(format!("      {}", line_number))).collect();
-            },
-            &Attribute::ConstantValue(ref cpi) => { lines.push(format!("    ConstantValue #{}", cpi.idx)); },
+            }
+            &Attribute::ConstantValue(ref cpi) => { lines.push(format!("    ConstantValue #{}", cpi.idx)); }
             &Attribute::StackMapTable(ref table) => {
                 lines.push(format!("    StackMapTable"));
                 let _: Vec<()> = table.iter().map(|frame| ClassfilePrinter::render_stack_map_frame(frame)).map(|line| lines.push(format!("      {}", line))).collect();
-            },
-            &Attribute::AnnotationDefault(_) => { lines.push(format!("    AnnotationDefault")); },
-            &Attribute::BootstrapMethods(_) => { lines.push(format!("    BootstrapMethods")); },
+            }
+            &Attribute::AnnotationDefault(_) => { lines.push(format!("    AnnotationDefault")); }
+            &Attribute::BootstrapMethods(_) => { lines.push(format!("    BootstrapMethods")); }
             &Attribute::LocalVariableTable(ref table) => {
                 lines.push(String::from("    LocalVariableTable"));
                 let _: Vec<()> = table.iter().map(|local_var| ClassfilePrinter::render_local_variable(local_var)).map(|line| lines.push(format!("    {}", line))).collect();
-            },
+            }
             &Attribute::LocalVariableTypeTable(ref table) => {
                 lines.push(String::from("    LocalVariableTypeTable"));
                 let _: Vec<()> = table.iter().map(|var_type| ClassfilePrinter::render_local_variable_type(var_type)).map(|line| lines.push(format!("    {}", line))).collect();
-            },
-            &Attribute::Deprecated => { lines.push(format!("    Deprecated")); },
+            }
+            &Attribute::Deprecated => { lines.push(format!("    Deprecated")); }
             _ => {
                 lines.push(format!("RandomAttribute"));
                 ()
-            },
-    //Code { max_stack: u16, max_locals: u16, code: Vec<Instruction>, exception_table: Vec<ExceptionHandler>, attributes: Vec<Attribute> },
+            }
+            //Code { max_stack: u16, max_locals: u16, code: Vec<Instruction>, exception_table: Vec<ExceptionHandler>, attributes: Vec<Attribute> },
         }
 
         lines

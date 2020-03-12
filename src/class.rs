@@ -15,11 +15,10 @@ pub enum JavaType<'a> {
     Short,
     Void,
     Class(&'a str),
-    Array(Box<JavaType<'a>>)
+    Array(Box<JavaType<'a>>),
 }
 
 impl<'a> JavaType<'a> {
-
     /// Convert a given type signature into a JavaType instance (if possible). None is returned
     /// if the conversation was not successful.
     pub fn parse(signature: &'a str) -> Option<JavaType<'a>> {
@@ -46,7 +45,7 @@ impl<'a> JavaType<'a> {
                             Some(result) => Some(JavaType::Array(Box::new(result))),
                             None => None
                         }
-                    },
+                    }
                     'L' => Some(JavaType::Class(signature)),
                     _ => None
                 }
@@ -83,11 +82,10 @@ pub struct ClassId {
 
 pub struct ClassSignature {
     pub package: String,
-    pub name: String
+    pub name: String,
 }
 
 impl ClassSignature {
-
     pub fn new(java_type: &JavaType) -> ClassSignature {
         let str = JavaType::to_string(java_type);
         match str.rfind('.') {
@@ -96,11 +94,10 @@ impl ClassSignature {
 
                 ClassSignature {
                     package: pkg.trim_right_matches(".").to_string(),
-                    name: name.to_string()
+                    name: name.to_string(),
                 }
-            },
+            }
             None => ClassSignature { package: "".to_string(), name: str.to_string() }
-
         }
     }
 
@@ -114,11 +111,10 @@ impl ClassSignature {
 ///
 pub struct Class {
     pub id: ClassId,
-    pub signature: ClassSignature
+    pub signature: ClassSignature,
 }
 
 impl Class {
-
     /// Constructs a new Class instance.
     pub fn new<'a>(id: ClassId, signature: JavaType<'a>) -> Class {
         Class { id: id, signature: ClassSignature::new(&signature) }

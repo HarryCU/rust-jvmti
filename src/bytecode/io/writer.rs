@@ -1,4 +1,4 @@
-use std::io::{ Write, Error, ErrorKind };
+use std::io::{Write, Error, ErrorKind};
 use super::super::classfile::*;
 
 pub struct ClassWriter<'a> {
@@ -12,15 +12,15 @@ impl<'a> ClassWriter<'a> {
 
     pub fn write_class(&mut self, classfile: &Classfile) -> Result<usize, Error> {
         self.write_magic_bytes()
-        .and(self.write_classfile_version(&classfile.version))
-        .and(self.write_constant_pool(&classfile.constant_pool))
-        .and(self.write_access_flags(&classfile.access_flags))
-        .and(self.write_constant_pool_index(&classfile.this_class))
-        .and(self.write_constant_pool_index(&classfile.super_class))
-        .and(self.write_interfaces(&classfile.interfaces))
-        .and(self.write_fields(&classfile.fields, &classfile.constant_pool))
-        .and(self.write_methods(&classfile.methods, &classfile.constant_pool))
-        .and(self.write_attributes(&classfile.attributes, &classfile.constant_pool))
+            .and(self.write_classfile_version(&classfile.version))
+            .and(self.write_constant_pool(&classfile.constant_pool))
+            .and(self.write_access_flags(&classfile.access_flags))
+            .and(self.write_constant_pool_index(&classfile.this_class))
+            .and(self.write_constant_pool_index(&classfile.super_class))
+            .and(self.write_interfaces(&classfile.interfaces))
+            .and(self.write_fields(&classfile.fields, &classfile.constant_pool))
+            .and(self.write_methods(&classfile.methods, &classfile.constant_pool))
+            .and(self.write_attributes(&classfile.attributes, &classfile.constant_pool))
     }
 
     pub fn write_magic_bytes(&mut self) -> Result<usize, Error> {
@@ -29,14 +29,14 @@ impl<'a> ClassWriter<'a> {
 
     pub fn write_classfile_version(&mut self, version: &ClassfileVersion) -> Result<usize, Error> {
         self.write_u16(version.minor_version)
-        .and(self.write_u16(version.major_version))
+            .and(self.write_u16(version.major_version))
     }
 
     pub fn write_constant_pool(&mut self, cp: &ConstantPool) -> Result<usize, Error> {
         cp.constants.iter().fold(self.write_u16(cp.cp_len() as u16), |acc, x| {
             match acc {
                 Ok(ctr) => self.write_constant(x).map(|c| c + ctr),
-                err@_ => err
+                err @ _ => err
             }
         })
     }
@@ -74,7 +74,7 @@ impl<'a> ClassWriter<'a> {
         ifs.iter().fold(self.write_u16(ifs.len() as u16), |acc, x| {
             match acc {
                 Ok(ctr) => self.write_u16(x.idx as u16).map(|c| c + ctr),
-                err@_ => err
+                err @ _ => err
             }
         })
     }
@@ -83,7 +83,7 @@ impl<'a> ClassWriter<'a> {
         fields.iter().fold(self.write_u16(fields.len() as u16), |acc, x| {
             match acc {
                 Ok(ctr) => self.write_field(x, cp).map(|c| c + ctr),
-                err@_ => err
+                err @ _ => err
             }
         })
     }
@@ -99,7 +99,7 @@ impl<'a> ClassWriter<'a> {
         methods.iter().fold(self.write_u16(methods.len() as u16), |acc, x| {
             match acc {
                 Ok(ctr) => self.write_method(x, cp).map(|c| c + ctr),
-                err@_ => err
+                err @ _ => err
             }
         })
     }
@@ -115,7 +115,7 @@ impl<'a> ClassWriter<'a> {
         attributes.iter().fold(self.write_u16(attributes.len() as u16), |acc, x| {
             match acc {
                 Ok(ctr) => self.write_attribute(x, cp).map(|c| c + ctr),
-                err@_ => err
+                err @ _ => err
             }
         })
     }
@@ -131,23 +131,23 @@ impl<'a> ClassWriter<'a> {
                     let mut code_writer = ClassWriter::new(&mut target);
 
                     let _ = code_writer.write_u16(max_stack)
-                    .and(code_writer.write_u16(max_locals))
-                    .and(code_writer.write_instructions(code))
-                    .and(code_writer.write_exception_handlers(exception_table))
-                    .and(code_writer.write_attributes(attributes, cp));
+                        .and(code_writer.write_u16(max_locals))
+                        .and(code_writer.write_instructions(code))
+                        .and(code_writer.write_exception_handlers(exception_table))
+                        .and(code_writer.write_attributes(attributes, cp));
                 }
 
                 self.write_u16(cp.get_utf8_index("Code") as u16)
-                .and(self.write_u32(target.len() as u32))
-                .and(self.write_n(&target))
-            },
+                    .and(self.write_u32(target.len() as u32))
+                    .and(self.write_n(&target))
+            }
             &Attribute::StackMapTable(ref table) => self.write_stack_map_table(table, cp),
             &Attribute::Exceptions(ref table) => self.write_u16(cp.get_utf8_index("Exceptions") as u16).and(self.write_u32(2 + (table.len() as u32) * 2)).and(self.write_u16(table.len() as u16)).and(table.iter().fold(Ok(0), |_, x| self.write_u16(x.idx as u16))),
             &Attribute::InnerClasses(ref table) => self.write_u16(cp.get_utf8_index("InnerClasses") as u16).and(self.write_u32(2 + (table.len() as u32) * 8)).and(self.write_u16(table.len() as u16)).and(table.iter().fold(Ok(0), |_, x| {
                 self.write_u16(x.inner_class_info_index.idx as u16)
-                .and(self.write_u16(x.outer_class_info_index.idx as u16))
-                .and(self.write_u16(x.inner_name_index.idx as u16))
-                .and(self.write_u16(x.access_flags.flags))
+                    .and(self.write_u16(x.outer_class_info_index.idx as u16))
+                    .and(self.write_u16(x.inner_name_index.idx as u16))
+                    .and(self.write_u16(x.access_flags.flags))
             })),
             &Attribute::EnclosingMethod { ref class_index, ref method_index } => self.write_u16(cp.get_utf8_index("EnclosingMethod") as u16).and(self.write_u32(4)).and(self.write_u16(class_index.idx as u16)).and(self.write_u16(method_index.idx as u16)),
             &Attribute::Synthetic => self.write_u16(cp.get_utf8_index("Synthetic") as u16).and(self.write_u32(0)),
@@ -159,98 +159,98 @@ impl<'a> ClassWriter<'a> {
             })),
             &Attribute::LocalVariableTable(ref table) => self.write_u16(cp.get_utf8_index("LocalVariableTable") as u16).and(self.write_u32(2 + table.len() as u32 * 10)).and(self.write_u16(table.len() as u16)).and(table.iter().fold(Ok(0), |_, x| {
                 self.write_u16(x.start_pc)
-                .and(self.write_u16(x.length))
-                .and(self.write_u16(x.name_index.idx as u16))
-                .and(self.write_u16(x.descriptor_index.idx as u16))
-                .and(self.write_u16(x.index))
+                    .and(self.write_u16(x.length))
+                    .and(self.write_u16(x.name_index.idx as u16))
+                    .and(self.write_u16(x.descriptor_index.idx as u16))
+                    .and(self.write_u16(x.index))
             })),
             &Attribute::LocalVariableTypeTable(ref table) => self.write_u16(cp.get_utf8_index("LocalVariableTypeTable") as u16).and(self.write_u32(2 + table.len() as u32 * 10)).and(self.write_u16(table.len() as u16)).and(table.iter().fold(Ok(0), |_, x| {
                 self.write_u16(x.start_pc)
-                .and(self.write_u16(x.length))
-                .and(self.write_u16(x.name_index.idx as u16))
-                .and(self.write_u16(x.signature_index.idx as u16))
-                .and(self.write_u16(x.index))
+                    .and(self.write_u16(x.length))
+                    .and(self.write_u16(x.name_index.idx as u16))
+                    .and(self.write_u16(x.signature_index.idx as u16))
+                    .and(self.write_u16(x.index))
             })),
             &Attribute::Deprecated => self.write_u16(cp.get_utf8_index("Deprecated") as u16).and(self.write_u32(0)),
             &Attribute::RuntimeVisibleAnnotations(ref table) => {
                 self.write_u16(cp.get_utf8_index("RuntimeVisibleAnnotations") as u16)
-                // attribute_length
-                .and(self.write_u32(table.iter().fold(2, |acc, x| acc + x.len() as u32)))
-                // num_annotations
-                .and(self.write_u16(table.len() as u16))
-                // annotations
-                .and(table.iter().fold(Ok(0), |_, x| self.write_annotation(x, cp)))
-            },
+                    // attribute_length
+                    .and(self.write_u32(table.iter().fold(2, |acc, x| acc + x.len() as u32)))
+                    // num_annotations
+                    .and(self.write_u16(table.len() as u16))
+                    // annotations
+                    .and(table.iter().fold(Ok(0), |_, x| self.write_annotation(x, cp)))
+            }
             &Attribute::RuntimeInvisibleAnnotations(ref table) => {
                 self.write_u16(cp.get_utf8_index("RuntimeInvisibleAnnotations") as u16)
-                // attribute_length
-                .and(self.write_u32(table.iter().fold(2, |acc, x| acc + x.len() as u32)))
-                // num_annotations
-                .and(self.write_u16(table.len() as u16))
-                // annotations
-                .and(table.iter().fold(Ok(0), |_, x| self.write_annotation(x, cp)))
-            },
+                    // attribute_length
+                    .and(self.write_u32(table.iter().fold(2, |acc, x| acc + x.len() as u32)))
+                    // num_annotations
+                    .and(self.write_u16(table.len() as u16))
+                    // annotations
+                    .and(table.iter().fold(Ok(0), |_, x| self.write_annotation(x, cp)))
+            }
             &Attribute::RuntimeVisibleParameterAnnotations(ref table) => {
                 self.write_u16(cp.get_utf8_index("RuntimeVisibleParameterAnnotations") as u16)
-                // attribute_length
-                .and(self.write_u32(table.iter().fold(1, |acc, x| acc + x.iter().fold(2, |acc2, x2| acc2 + x2.len()) as u32)))
-                // num_parameters
-                .and(self.write_u8(table.len() as u8))
-                // parameter_annotations
-                .and(table.iter().fold(Ok(0), |_, ann_table| self.write_u16(ann_table.len() as u16).and(ann_table.iter().fold(Ok(0), |_, ann| self.write_annotation(ann, cp)))))
-            },
+                    // attribute_length
+                    .and(self.write_u32(table.iter().fold(1, |acc, x| acc + x.iter().fold(2, |acc2, x2| acc2 + x2.len()) as u32)))
+                    // num_parameters
+                    .and(self.write_u8(table.len() as u8))
+                    // parameter_annotations
+                    .and(table.iter().fold(Ok(0), |_, ann_table| self.write_u16(ann_table.len() as u16).and(ann_table.iter().fold(Ok(0), |_, ann| self.write_annotation(ann, cp)))))
+            }
             &Attribute::RuntimeInvisibleParameterAnnotations(ref table) => {
                 self.write_u16(cp.get_utf8_index("RuntimeInvisibleParameterAnnotations") as u16)
-                // attribute_length
-                .and(self.write_u32(table.iter().fold(1, |acc, x| acc + x.iter().fold(2, |acc2, x2| acc2 + x2.len()) as u32)))
-                // num_parameters
-                .and(self.write_u8(table.len() as u8))
-                // parameter_annotations
-                .and(table.iter().fold(Ok(0), |_, ann_table| self.write_u16(ann_table.len() as u16).and(ann_table.iter().fold(Ok(0), |_, ann| self.write_annotation(ann, cp)))))
-            },
+                    // attribute_length
+                    .and(self.write_u32(table.iter().fold(1, |acc, x| acc + x.iter().fold(2, |acc2, x2| acc2 + x2.len()) as u32)))
+                    // num_parameters
+                    .and(self.write_u8(table.len() as u8))
+                    // parameter_annotations
+                    .and(table.iter().fold(Ok(0), |_, ann_table| self.write_u16(ann_table.len() as u16).and(ann_table.iter().fold(Ok(0), |_, ann| self.write_annotation(ann, cp)))))
+            }
             &Attribute::RuntimeVisibleTypeAnnotations(ref table) => {
                 self.write_u16(cp.get_utf8_index("RuntimeVisibleTypeAnnotations") as u16)
-                // attribute_length
-                .and(self.write_u32(table.iter().fold(2, |acc, x| acc + x.len() as u32)))
-                // num_annotations
-                .and(self.write_u16(table.len() as u16))
-                // annotations
-                .and(table.iter().fold(Ok(0), |_, x| self.write_type_annotation(x, cp)))
-            },
+                    // attribute_length
+                    .and(self.write_u32(table.iter().fold(2, |acc, x| acc + x.len() as u32)))
+                    // num_annotations
+                    .and(self.write_u16(table.len() as u16))
+                    // annotations
+                    .and(table.iter().fold(Ok(0), |_, x| self.write_type_annotation(x, cp)))
+            }
             &Attribute::RuntimeInvisibleTypeAnnotations(ref table) => {
                 self.write_u16(cp.get_utf8_index("RuntimeInvisibleTypeAnnotations") as u16)
-                // attribute_length
-                .and(self.write_u32(table.iter().fold(2, |acc, x| acc + x.len() as u32)))
-                // num_annotations
-                .and(self.write_u16(table.len() as u16))
-                // annotations
-                .and(table.iter().fold(Ok(0), |_, x| self.write_type_annotation(x, cp)))
-            },
+                    // attribute_length
+                    .and(self.write_u32(table.iter().fold(2, |acc, x| acc + x.len() as u32)))
+                    // num_annotations
+                    .and(self.write_u16(table.len() as u16))
+                    // annotations
+                    .and(table.iter().fold(Ok(0), |_, x| self.write_type_annotation(x, cp)))
+            }
             &Attribute::AnnotationDefault(ref value) => {
                 self.write_u16(cp.get_utf8_index("AnnotationDefault") as u16)
-                .and(self.write_u32(value.len() as u32))
-                .and(self.write_element_value(value, cp))
-            },
+                    .and(self.write_u32(value.len() as u32))
+                    .and(self.write_element_value(value, cp))
+            }
             &Attribute::BootstrapMethods(ref table) => {
                 self.write_u16(cp.get_utf8_index("BootstrapMethods") as u16)
-                // attribute_length
-                .and(self.write_u32(table.iter().fold(2, |acc, method| acc + 4 + method.bootstrap_arguments.len() as u32 * 2)))
-                // num_bootstrap_methods
-                .and(self.write_u16(table.len() as u16))
-                // bootstrap_methods
-                .and(table.iter().fold(Ok(0), |_, method| {
-                    // bootstrap_method_ref
-                    self.write_u16(method.bootstrap_method_ref.idx as u16)
-                    // num_bootstrap_arguments
-                    .and(self.write_u16(method.bootstrap_arguments.len() as u16))
-                    // bootstrap_arguments
-                    .and(method.bootstrap_arguments.iter().fold(Ok(0), |_, arg| self.write_u16(arg.idx as u16)))
-                }))
-            },
+                    // attribute_length
+                    .and(self.write_u32(table.iter().fold(2, |acc, method| acc + 4 + method.bootstrap_arguments.len() as u32 * 2)))
+                    // num_bootstrap_methods
+                    .and(self.write_u16(table.len() as u16))
+                    // bootstrap_methods
+                    .and(table.iter().fold(Ok(0), |_, method| {
+                        // bootstrap_method_ref
+                        self.write_u16(method.bootstrap_method_ref.idx as u16)
+                            // num_bootstrap_arguments
+                            .and(self.write_u16(method.bootstrap_arguments.len() as u16))
+                            // bootstrap_arguments
+                            .and(method.bootstrap_arguments.iter().fold(Ok(0), |_, arg| self.write_u16(arg.idx as u16)))
+                    }))
+            }
             &Attribute::MethodParameters(ref table) => {
                 self.write_u16(cp.get_utf8_index("MethodParameters") as u16)
-                .and(self.write_u32(1 + table.len() as u32 * 4))
-                .and(table.iter().fold(Ok(0), |_, p| self.write_u16(p.name_index.idx as u16).and(self.write_u16(p.access_flags.flags as u16))))
+                    .and(self.write_u32(1 + table.len() as u32 * 4))
+                    .and(table.iter().fold(Ok(0), |_, p| self.write_u16(p.name_index.idx as u16).and(self.write_u16(p.access_flags.flags as u16))))
             }
         }
     }
@@ -266,7 +266,7 @@ impl<'a> ClassWriter<'a> {
             .and(table.iter().fold(Ok(0), |_, x| {
                 match x {
                     &StackMapFrame::SameFrame { tag } => self.write_u8(tag),
-                    &StackMapFrame::SameLocals1StackItemFrame{ tag, ref stack } => self.write_u8(tag).and(self.write_verification_type(stack)),
+                    &StackMapFrame::SameLocals1StackItemFrame { tag, ref stack } => self.write_u8(tag).and(self.write_verification_type(stack)),
                     &StackMapFrame::SameLocals1StackItemFrameExtended { offset_delta, ref stack } => self.write_u8(247).and(self.write_u16(offset_delta)).and(self.write_verification_type(stack)),
                     &StackMapFrame::ChopFrame { tag, offset_delta } => self.write_u8(tag).and(self.write_u16(offset_delta)),
                     &StackMapFrame::SameFrameExtended { offset_delta } => self.write_u8(251).and(self.write_u16(offset_delta)),
@@ -284,7 +284,7 @@ impl<'a> ClassWriter<'a> {
                             .and(self.write_u16(stack.len() as u16))
                             // stack
                             .and(stack.iter().fold(Ok(0), |_, x| self.write_verification_type(x)))
-                    },
+                    }
                     &StackMapFrame::FutureUse { tag } => self.write_u8(tag)
                 }
             }))
@@ -321,39 +321,39 @@ impl<'a> ClassWriter<'a> {
     fn write_annotation(&mut self, annotation: &Annotation, cp: &ConstantPool) -> Result<usize, Error> {
         // type_index
         self.write_u16(annotation.type_index.idx as u16)
-        // num_element_value_pairs
-        .and(self.write_u16(annotation.element_value_pairs.len() as u16))
-        // element_value_pairs
-        .and(annotation.element_value_pairs.iter().fold(Ok(0), |_, x| self.write_element_value_pair(x, cp)))
+            // num_element_value_pairs
+            .and(self.write_u16(annotation.element_value_pairs.len() as u16))
+            // element_value_pairs
+            .and(annotation.element_value_pairs.iter().fold(Ok(0), |_, x| self.write_element_value_pair(x, cp)))
     }
 
     fn write_type_annotation(&mut self, annotation: &TypeAnnotation, cp: &ConstantPool) -> Result<usize, Error> {
         // target_type
         self.write_u8(annotation.target_info.subtype())
-        // target_info
-        .and({
-            match &annotation.target_info {
-                &TargetInfo::TypeParameter { subtype: _, idx } => self.write_u8(idx),
-                &TargetInfo::SuperType { idx } => self.write_u16(idx),
-                &TargetInfo::TypeParameterBound { subtype: _, param_idx, bound_index } => self.write_u8(param_idx).and(self.write_u8(bound_index)),
-                &TargetInfo::Empty { subtype: _ } => Ok(0),
-                &TargetInfo::MethodFormalParameter { idx } => self.write_u8(idx),
-                &TargetInfo::Throws { idx } => self.write_u16(idx),
-                &TargetInfo::LocalVar { subtype: _, ref target } => self.write_u16(target.len() as u16).and(target.iter().fold(Ok(0), |_, x| self.write_u16(x.0).and(self.write_u16(x.1)).and(self.write_u16(x.2)))),
-                &TargetInfo::Catch { idx } => self.write_u16(idx),
-                &TargetInfo::Offset { subtype: _, idx } => self.write_u16(idx),
-                &TargetInfo::TypeArgument { subtype: _, offset, type_arg_idx } => self.write_u16(offset).and(self.write_u8(type_arg_idx))
-            }
-        })
-        .and({
-            // path_length
-            self.write_u8(annotation.target_path.path.len() as u8)
-            // path
-            .and(annotation.target_path.path.iter().fold(Ok(0), |_, x| self.write_u8(x.0.value()).and(self.write_u8(x.1))))
-        })
-        .and(self.write_u16(annotation.type_index.idx as u16))
-        .and(self.write_u16(annotation.element_value_pairs.len() as u16))
-        .and(annotation.element_value_pairs.iter().fold(Ok(0), |_, x| self.write_element_value_pair(x, cp)))
+            // target_info
+            .and({
+                match &annotation.target_info {
+                    &TargetInfo::TypeParameter { subtype: _, idx } => self.write_u8(idx),
+                    &TargetInfo::SuperType { idx } => self.write_u16(idx),
+                    &TargetInfo::TypeParameterBound { subtype: _, param_idx, bound_index } => self.write_u8(param_idx).and(self.write_u8(bound_index)),
+                    &TargetInfo::Empty { subtype: _ } => Ok(0),
+                    &TargetInfo::MethodFormalParameter { idx } => self.write_u8(idx),
+                    &TargetInfo::Throws { idx } => self.write_u16(idx),
+                    &TargetInfo::LocalVar { subtype: _, ref target } => self.write_u16(target.len() as u16).and(target.iter().fold(Ok(0), |_, x| self.write_u16(x.0).and(self.write_u16(x.1)).and(self.write_u16(x.2)))),
+                    &TargetInfo::Catch { idx } => self.write_u16(idx),
+                    &TargetInfo::Offset { subtype: _, idx } => self.write_u16(idx),
+                    &TargetInfo::TypeArgument { subtype: _, offset, type_arg_idx } => self.write_u16(offset).and(self.write_u8(type_arg_idx))
+                }
+            })
+            .and({
+                // path_length
+                self.write_u8(annotation.target_path.path.len() as u8)
+                    // path
+                    .and(annotation.target_path.path.iter().fold(Ok(0), |_, x| self.write_u8(x.0.value()).and(self.write_u8(x.1))))
+            })
+            .and(self.write_u16(annotation.type_index.idx as u16))
+            .and(self.write_u16(annotation.element_value_pairs.len() as u16))
+            .and(annotation.element_value_pairs.iter().fold(Ok(0), |_, x| self.write_element_value_pair(x, cp)))
     }
 
     fn write_instructions(&mut self, instructions: &Vec<Instruction>) -> Result<usize, Error> {
@@ -563,7 +563,7 @@ impl<'a> ClassWriter<'a> {
                 let len = 9 + padding + l.len() * 8;
 
                 Ok(len)
-            },
+            }
             &Instruction::LOR => self.write_u8(0x81),
             &Instruction::LREM => self.write_u8(0x71),
             &Instruction::LRETURN => self.write_u8(0xad),
@@ -612,7 +612,7 @@ impl<'a> ClassWriter<'a> {
                 }
 
                 Ok(13 + padding + d.len() * 4)
-            },
+            }
             &Instruction::ILOAD_W(value) => self.write_u16(0xc415).and(self.write_u16(value)).and(Ok(4)),
             &Instruction::FLOAD_W(value) => self.write_u16(0xc417).and(self.write_u16(value)).and(Ok(4)),
             &Instruction::ALOAD_W(value) => self.write_u16(0xc419).and(self.write_u16(value)).and(Ok(4)),
@@ -633,16 +633,16 @@ impl<'a> ClassWriter<'a> {
         self.write_u16(exception_table.len() as u16)
             .and(exception_table.iter().fold(Ok(0), |_, x| {
                 self.write_u16(x.start_pc)
-                .and(self.write_u16(x.end_pc))
-                .and(self.write_u16(x.handler_pc))
-                .and(self.write_u16(x.catch_type.idx as u16))
+                    .and(self.write_u16(x.end_pc))
+                    .and(self.write_u16(x.handler_pc))
+                    .and(self.write_u16(x.catch_type.idx as u16))
             }))
     }
 
     pub fn write_n(&mut self, bytes: &Vec<u8>) -> Result<usize, Error> {
         bytes.iter().fold(Ok(0), |acc, x| match acc {
             Ok(ctr) => self.write_u8(*x).map(|c| c + ctr),
-            err@_ => err
+            err @ _ => err
         })
     }
 

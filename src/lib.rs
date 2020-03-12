@@ -49,7 +49,7 @@ pub mod version;
 
 fn on_method_entry(event: MethodInvocationEvent) {
     let shall_record = match static_context().config.read() {
-        Ok(cfg) => (*cfg).entry_points.iter().any(|item| *item == format!("{}.{}.{}", event.class_sig.package, event.class_sig.name, event.method_sig.name) ), //event.class_name.as_str() == item),
+        Ok(cfg) => (*cfg).entry_points.iter().any(|item| *item == format!("{}.{}.{}", event.class_sig.package, event.class_sig.name, event.method_sig.name)), //event.class_name.as_str() == item),
         _ => false
     };
 
@@ -121,33 +121,33 @@ fn on_class_file_load(mut event: ClassFileLoadEvent) -> Option<Vec<u8>> {
         }
         let _: Vec<()> = ClassfilePrinter::render_lines(&event.class).iter().map(|line| println!("{}", line)).collect();
     }
-/*
-    let output_class: Vec<u8> = vec![];
-    let mut write_cursor = Cursor::new(output_class);
+    /*
+        let output_class: Vec<u8> = vec![];
+        let mut write_cursor = Cursor::new(output_class);
 
-    let mut new_class = event.class;
+        let mut new_class = event.class;
 
-    new_class.constant_pool.constants = new_class.constant_pool.constants.into_iter().map(|constant| {
-        match constant {
-            Constant::Utf8(bytes) => String::from_utf8(bytes.clone()).map(|string| match string.as_str() {
-                "Hello World" => Constant::Utf8(String::from("Lofasz").into_bytes()),
-                _ => Constant::Utf8(string.into_bytes())
-            }).unwrap_or(Constant::Utf8(bytes)),
-            other @ _ => other
+        new_class.constant_pool.constants = new_class.constant_pool.constants.into_iter().map(|constant| {
+            match constant {
+                Constant::Utf8(bytes) => String::from_utf8(bytes.clone()).map(|string| match string.as_str() {
+                    "Hello World" => Constant::Utf8(String::from("Lofasz").into_bytes()),
+                    _ => Constant::Utf8(string.into_bytes())
+                }).unwrap_or(Constant::Utf8(bytes)),
+                other @ _ => other
+            }
+        }).collect();
+
+        let result = {
+            let mut writer = ClassWriter::new(&mut write_cursor);
+            writer.write_class(&new_class)
+        };
+
+        if let Ok(_) = result {
+            Some(write_cursor.into_inner())
+        } else {
+            None
         }
-    }).collect();
-
-    let result = {
-        let mut writer = ClassWriter::new(&mut write_cursor);
-        writer.write_class(&new_class)
-    };
-
-    if let Ok(_) = result {
-        Some(write_cursor.into_inner())
-    } else {
-        None
-    }
-    */
+        */
     None
 }
 
@@ -211,5 +211,4 @@ pub extern fn Agent_OnLoad(vm: JavaVMPtr, options: MutString, reserved: VoidPtr)
 ///
 #[no_mangle]
 #[allow(non_snake_case, unused_variables)]
-pub extern fn Agent_OnUnload(vm: JavaVMPtr) {
-}
+pub extern fn Agent_OnUnload(vm: JavaVMPtr) {}

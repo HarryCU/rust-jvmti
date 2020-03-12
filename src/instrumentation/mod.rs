@@ -11,19 +11,19 @@ pub enum JavaType {
     Double,
     Array,
     Reference,
-    Void
+    Void,
 }
 
 pub struct JavaClass {
     methods: Vec<Method>,
-    fields: Vec<Field>
+    fields: Vec<Field>,
 }
 
 impl JavaClass {
     pub fn new() -> JavaClass {
         JavaClass {
             methods: vec![],
-            fields: vec![]
+            fields: vec![],
         }
     }
 
@@ -36,35 +36,33 @@ impl JavaClass {
         None
     }
 
-    pub fn add_method(method: Method) {
-
-    }
+    pub fn add_method(method: Method) {}
 }
 
 pub struct Field {
     name: String,
-    field_type: JavaType
+    field_type: JavaType,
 }
 
 impl Field {
     pub fn new(name: String, field_type: JavaType) -> Field {
         Field {
             name: name,
-            field_type: field_type
+            field_type: field_type,
         }
     }
 }
 
 pub struct Method {
     name: String,
-    return_type: JavaType
+    return_type: JavaType,
 }
 
 impl Method {
     pub fn new(name: String) -> Method {
         Method {
             name: name,
-            return_type: JavaType::Void
+            return_type: JavaType::Void,
         }
     }
 }

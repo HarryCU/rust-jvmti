@@ -12,11 +12,10 @@ pub struct Agent {
     jvm: Box<JVMF>,
     pub capabilities: Capabilities,
     callbacks: EventCallbacks,
-    environment: Box<JVMTI>
+    environment: Box<JVMTI>,
 }
 
 impl Agent {
-
     /// Create a newly initialised but blank JVM `Agent` instance using the provided Java VM pointer.
     pub fn new(vm: JavaVMPtr) -> Agent {
         let jvm_agent = JVMAgent::new(vm);
@@ -26,11 +25,10 @@ impl Agent {
                 jvm: Box::new(jvm_agent),
                 capabilities: Capabilities::new(),
                 callbacks: EventCallbacks::new(),
-                environment: environment
+                environment: environment,
             },
             Err(err) => panic!("FATAL: Could not get JVMTI environment: {}", translate_error(&err))
         }
-
     }
 
     /// Create a newly initialised but blank JVM `Agent` instance using the provided JVM agent.
@@ -40,7 +38,7 @@ impl Agent {
                 jvm: jvm,
                 capabilities: Capabilities::new(),
                 callbacks: EventCallbacks::new(),
-                environment: environment
+                environment: environment,
             },
             Err(err) => panic!("FATAL: Could not get JVMTI environment: {}", translate_error(&err))
         }
@@ -87,10 +85,10 @@ impl Agent {
                         self.environment.set_event_notification_mode(VMEvent::GarbageCollectionStart, self.callbacks.garbage_collection_start.is_some());
                         self.environment.set_event_notification_mode(VMEvent::GarbageCollectionFinish, self.callbacks.garbage_collection_finish.is_some());
                         self.environment.set_event_notification_mode(VMEvent::ClassFileLoadHook, self.callbacks.class_file_load_hook.is_some());
-                    },
+                    }
                     Some(error) => println!("Couldn't register callbacks: {}", translate_error(&error))
                 }
-            },
+            }
             Err(error) => println!("Couldn't update capabilities: {}", translate_error(&error))
         }
     }

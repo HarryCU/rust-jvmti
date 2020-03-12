@@ -18,18 +18,16 @@ pub mod jvmti;
 /// both and delegating the method calls to their corresponding recipients.
 pub struct Environment {
     jvmti: JVMTIEnvironment,
-    jni: JNIEnvironment
+    jni: JNIEnvironment,
 }
 
 impl Environment {
-
     pub fn new(jvmti: JVMTIEnvironment, jni: JNIEnvironment) -> Environment {
         Environment { jvmti: jvmti, jni: jni }
     }
 }
 
 impl JVMTI for Environment {
-
     fn get_version_number(&self) -> VersionNumber {
         self.jvmti.get_version_number()
     }
@@ -76,9 +74,7 @@ impl JVMTI for Environment {
 }
 
 impl JNI for Environment {
-
     fn get_object_class(&self, object_id: &JavaObject) -> ClassId {
         self.jni.get_object_class(object_id)
     }
-
 }

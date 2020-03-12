@@ -2,13 +2,14 @@ use super::super::native::{JavaVMPtr, JVMTIEnvPtr};
 use super::super::native::jvmti_native::JVMTI_VERSION;
 use super::super::environment::jvmti::{JVMTI, JVMTIEnvironment};
 use super::super::error::{wrap_error, NativeError};
-use libc::c_void;
+use std::ffi::c_void;
 use std::ptr;
 
 pub trait JVMF {
     fn get_environment(&self) -> Result<Box<JVMTI>, NativeError>;
     fn destroy(&self) -> Result<(), NativeError>;
 }
+
 ///
 /// `JVMAgent` represents a binding to the JVM.
 ///
@@ -17,7 +18,6 @@ pub struct JVMAgent {
 }
 
 impl JVMAgent {
-
     /// Create a new `JVMAgent` instance
     pub fn new(vm: JavaVMPtr) -> JVMAgent {
         JVMAgent { vm: vm }
@@ -25,7 +25,6 @@ impl JVMAgent {
 }
 
 impl JVMF for JVMAgent {
-
     /// Return the native JVMTI environment if available (ie. the current thread is attached to it)
     /// otherwise return an error message.
     fn get_environment(&self) -> Result<Box<JVMTI>, NativeError> {
@@ -39,7 +38,7 @@ impl JVMF for JVMAgent {
                     let env_ptr: JVMTIEnvPtr = *penv_ptr as JVMTIEnvPtr;
                     let env = JVMTIEnvironment::new(env_ptr);
                     return Result::Ok(Box::new(env));
-                },
+                }
                 err @ _ => Result::Err(wrap_error(err as u32))
             }
         }

@@ -7,12 +7,12 @@ pub enum ClassfileVersion {
     Java1_6,
     Java1_7,
     Java1_8,
-    Java1_9
+    Java1_9,
 }
 
 pub struct Class {
     version: ClassfileVersion,
-    constant_pool: ConstantPool
+    constant_pool: ConstantPool,
 }
 
 impl Class {
@@ -21,7 +21,7 @@ impl Class {
 
         Class {
             version: DEFAULT_VERSION,
-            constant_pool: ConstantPool::new()
+            constant_pool: ConstantPool::new(),
         }
     }
 
@@ -51,30 +51,22 @@ impl Class {
     }
 }
 
-pub struct ConstantPool {
-}
+pub struct ConstantPool {}
 
 impl ConstantPool {
     pub fn new() -> ConstantPool {
         ConstantPool {}
     }
 
-    pub fn add_utf8_constant(&mut self, content: String) {
+    pub fn add_utf8_constant(&mut self, content: String) {}
 
-    }
-
-    pub fn add_string_constant(&mut self, content: String) {
-
-    }
+    pub fn add_string_constant(&mut self, content: String) {}
 }
 
-pub struct Method {
-}
+pub struct Method {}
 
 impl Method {
     pub fn new() -> Method {
         Method {}
     }
-
-
 }

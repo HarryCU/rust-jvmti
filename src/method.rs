@@ -13,7 +13,6 @@ pub struct MethodSignature {
 }
 
 impl MethodSignature {
-
     pub fn new(raw_signature: String) -> MethodSignature {
         MethodSignature { name: raw_signature }
     }

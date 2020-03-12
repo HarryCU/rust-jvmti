@@ -7,11 +7,10 @@ use super::native::jvmti_native::*;
 pub struct VersionNumber {
     pub major_version: u16,
     pub minor_version: u8,
-    pub micro_version: u8
+    pub micro_version: u8,
 }
 
 impl VersionNumber {
-
     ///
     /// Parse an unsigned 32-bit integer as a Java API version number
     ///
@@ -23,7 +22,7 @@ impl VersionNumber {
         VersionNumber {
             major_version: major_version,
             minor_version: minor_version,
-            micro_version: micro_version
+            micro_version: micro_version,
         }
     }
 
