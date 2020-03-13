@@ -9,6 +9,9 @@ use super::method::{MethodId, MethodSignature};
 use super::native::{JavaObject, JavaThread};
 use super::thread::Thread;
 use super::version::VersionNumber;
+use native::MutByteArray;
+use table::LocalVariableTable;
+use thread::ThreadId;
 
 pub mod jni;
 pub mod jvm;
@@ -60,6 +63,26 @@ impl JVMTI for Environment {
         self.jvmti.get_method_name(method_id)
     }
 
+    fn get_argument_size(&self, method_id: &MethodId) -> Result<i32, NativeError> {
+        self.jvmti.get_argument_size(method_id)
+    }
+
+    fn get_local_variable_table(&self, method_id: &MethodId) -> Result<LocalVariableTable, NativeError> {
+        self.jvmti.get_local_variable_table(method_id)
+    }
+
+    fn get_frame_location(&self, thread_id: &ThreadId, method_id: &MethodId, depth: i32) -> Result<i32, NativeError> {
+        self.jvmti.get_frame_location(thread_id, method_id, depth)
+    }
+
+    fn get_local_object(&self, thread_id: &ThreadId, depth: i32, slot: i32) -> Result<JavaObject, NativeError> {
+        self.jvmti.get_local_object(thread_id, depth, slot)
+    }
+
+    fn get_tag(&self, object_id: &JavaObject) -> Result<i32, NativeError> {
+        self.jvmti.get_tag(object_id)
+    }
+
     fn get_class_signature(&self, class_id: &ClassId) -> Result<ClassSignature, NativeError> {
         self.jvmti.get_class_signature(class_id)
     }
@@ -68,13 +91,17 @@ impl JVMTI for Environment {
         self.jvmti.allocate(len)
     }
 
-    fn deallocate(&self) {
-        self.jvmti.deallocate()
+    fn deallocate(&self, mem_ptr: MutByteArray) -> Option<NativeError> {
+        self.jvmti.deallocate(mem_ptr)
     }
 }
 
 impl JNI for Environment {
     fn get_object_class(&self, object_id: &JavaObject) -> ClassId {
         self.jni.get_object_class(object_id)
+    }
+
+    fn delete_local_ref(&self, object_id: &JavaObject) {
+        self.jni.delete_local_ref(object_id)
     }
 }

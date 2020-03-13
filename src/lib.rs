@@ -37,6 +37,7 @@ pub mod method;
 pub mod native;
 pub mod options;
 pub mod runtime;
+pub mod table;
 pub mod thread;
 pub mod util;
 pub mod version;

@@ -16,6 +16,8 @@ pub type JVMTIEnvPtr = *mut jvmti_native::jvmtiEnv;
 pub type JavaVMPtr = *mut jvmti_native::JavaVM;
 // Mutable pointer to a JNI Environment
 pub type JNIEnvPtr = *mut jvmti_native::JNIEnv;
+// Mutable pointer to a JNI Environment
+pub type JVMTILocalVariableEntryPtr = *mut jvmti_native::jvmtiLocalVariableEntry;
 /// Standard return value type for JVMTI functions
 pub type ReturnValue = jvmti_native::jint;
 /// Typed alias to C void *'s

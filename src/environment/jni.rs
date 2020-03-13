@@ -7,6 +7,7 @@ use super::super::class::ClassId;
 pub trait JNI {
     /// Return an `ClassId` belonging to the given Java object instance.
     fn get_object_class(&self, object_id: &JavaObject) -> ClassId;
+    fn delete_local_ref(&self, object_id: &JavaObject);
 }
 
 ///
@@ -28,6 +29,12 @@ impl JNI for JNIEnvironment {
             let class_id = (**self.jni).GetObjectClass.unwrap()(self.jni, *object_id);
 
             ClassId { native_id: class_id }
+        }
+    }
+
+    fn delete_local_ref(&self, object_id: &JavaObject) {
+        unsafe {
+            (**self.jni).DeleteLocalRef.unwrap()(self.jni, *object_id);
         }
     }
 }

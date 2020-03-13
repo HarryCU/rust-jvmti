@@ -11,6 +11,9 @@ use super::runtime::*;
 use super::thread::Thread;
 use super::version::VersionNumber;
 use std::collections::HashMap;
+use native::{MutByteArray, JavaObject};
+use table::LocalVariableTable;
+use thread::ThreadId;
 
 /// Allows testing of JVM and JVMTI-related functions by emulating (mocking) a JVM agent.
 pub struct JVMEmulator {
@@ -93,6 +96,26 @@ impl JVMTI for JVMEmulator {
         }
     }
 
+    fn get_argument_size(&self, method_id: &MethodId) -> Result<i32, NativeError> {
+        Err(NativeError::NotImplemented)
+    }
+
+    fn get_local_variable_table(&self, method_id: &MethodId) -> Result<LocalVariableTable, NativeError> {
+        Err(NativeError::NotImplemented)
+    }
+
+    fn get_frame_location(&self, thread_id: &ThreadId, method_id: &MethodId, depth: i32) -> Result<i32, NativeError> {
+        Err(NativeError::NotImplemented)
+    }
+
+    fn get_local_object(&self, thread_id: &ThreadId, depth: i32, slot: i32) -> Result<JavaObject, NativeError> {
+        Err(NativeError::NotImplemented)
+    }
+
+    fn get_tag(&self, obj: &JavaObject) -> Result<i32, NativeError> {
+        Err(NativeError::NotImplemented)
+    }
+
     fn get_class_signature(&self, class_id: &ClassId) -> Result<ClassSignature, NativeError> {
         match class_id.native_id as u64 {
             _ => Err(NativeError::NotImplemented)
@@ -103,5 +126,7 @@ impl JVMTI for JVMEmulator {
         Ok(MemoryAllocation { ptr: ::std::ptr::null_mut(), len: len })
     }
 
-    fn deallocate(&self) {}
+    fn deallocate(&self, mem_ptr: *mut u8) -> Option<NativeError> {
+        Some(NativeError::NotImplemented)
+    }
 }

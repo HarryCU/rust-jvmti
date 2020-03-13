@@ -5,6 +5,7 @@ use super::super::event::{EventCallbacks, VMEvent};
 use super::super::event_handler::*;
 use super::super::mem::MemoryAllocation;
 use super::super::method::{MethodId, MethodSignature};
+use super::super::table::LocalVariableTable;
 use super::super::thread::{ThreadId, Thread};
 use super::super::util::stringify;
 use super::super::version::VersionNumber;
@@ -33,9 +34,14 @@ pub trait JVMTI {
     fn get_thread_info(&self, thread_id: &JavaThread) -> Result<Thread, NativeError>;
     fn get_method_declaring_class(&self, method_id: &MethodId) -> Result<ClassId, NativeError>;
     fn get_method_name(&self, method_id: &MethodId) -> Result<MethodSignature, NativeError>;
+    fn get_argument_size(&self, method_id: &MethodId) -> Result<i32, NativeError>;
+    fn get_local_variable_table(&self, method_id: &MethodId) -> Result<LocalVariableTable, NativeError>;
+    fn get_frame_location(&self, thread_id: &ThreadId, method_id: &MethodId, depth: i32) -> Result<i32, NativeError>;
+    fn get_local_object(&self, thread_id: &ThreadId, depth: i32, slot: i32) -> Result<JavaObject, NativeError>;
+    fn get_tag(&self, object_id: &JavaObject) -> Result<i32, NativeError>;
     fn get_class_signature(&self, class_id: &ClassId) -> Result<ClassSignature, NativeError>;
     fn allocate(&self, len: usize) -> Result<MemoryAllocation, NativeError>;
-    fn deallocate(&self);
+    fn deallocate(&self, mem_ptr: MutByteArray) -> Option<NativeError>;
 }
 
 pub struct JVMTIEnvironment {
@@ -182,6 +188,71 @@ impl JVMTI for JVMTIEnvironment {
         }
     }
 
+    fn get_argument_size(&self, method_id: &MethodId) -> Result<i32, NativeError> {
+        let mut size = 0;
+        let mut size_ptr = &mut size;
+        unsafe {
+            match wrap_error((**self.jvmti).GetArgumentsSize.unwrap()(self.jvmti, method_id.native_id, size_ptr)) {
+                NativeError::NoError => Ok(*size_ptr),
+                err @ _ => Err(err)
+            }
+        }
+    }
+
+    fn get_local_variable_table(&self, method_id: &MethodId) -> Result<LocalVariableTable, NativeError> {
+        let mut entry_count = 0;
+        let mut entry_count_ptr = &mut entry_count;
+
+        let mut table = ptr::null_mut();
+        let mut table_ptr = &mut table;
+
+        unsafe {
+            match wrap_error((**self.jvmti).GetLocalVariableTable.unwrap()(self.jvmti, method_id.native_id, entry_count_ptr, table_ptr)) {
+                NativeError::NoError => Ok(LocalVariableTable { entry: *table_ptr, count: *entry_count_ptr }),
+                err @ _ => Err(err)
+            }
+        }
+    }
+
+    fn get_frame_location(&self, thread_id: &ThreadId, method_id: &MethodId, depth: i32) -> Result<i32, NativeError> {
+        let mut method = ptr::null_mut();
+        let mut method_ptr = &mut method;
+        *method_ptr = method_id.native_id;
+
+        let mut location = 0;
+        let mut location_ptr = &mut location;
+
+        unsafe {
+            match wrap_error((**self.jvmti).GetFrameLocation.unwrap()(self.jvmti, thread_id.native_id, depth, method_ptr, location_ptr)) {
+                NativeError::NoError => Ok(*location_ptr),
+                err @ _ => Err(err)
+            }
+        }
+    }
+
+    fn get_local_object(&self, thread_id: &ThreadId, depth: i32, slot: i32) -> Result<JavaObject, NativeError> {
+        let mut obj = ptr::null_mut();
+
+        unsafe {
+            match wrap_error((**self.jvmti).GetLocalObject.unwrap()(self.jvmti, thread_id.native_id, depth, slot, obj)) {
+                NativeError::NoError => Ok(*obj),
+                err @ _ => Err(err)
+            }
+        }
+    }
+
+    fn get_tag(&self, object_id: &JavaObject) -> Result<i32, NativeError> {
+        let mut tag = 0;
+        let mut tag_ptr = &mut tag;
+
+        unsafe {
+            match wrap_error((**self.jvmti).GetTag.unwrap()(self.jvmti, *object_id, tag_ptr)) {
+                NativeError::NoError => Ok(*tag_ptr),
+                err @ _ => Err(err)
+            }
+        }
+    }
+
     fn get_class_signature(&self, class_id: &ClassId) -> Result<ClassSignature, NativeError> {
         unsafe {
             let mut native_sig: MutString = ptr::null_mut();
@@ -209,5 +280,12 @@ impl JVMTI for JVMTIEnvironment {
         }
     }
 
-    fn deallocate(&self) {}
+    fn deallocate(&self, mem_ptr: MutByteArray) -> Option<NativeError> {
+        unsafe {
+            match wrap_error((**self.jvmti).Deallocate.unwrap()(self.jvmti, mem_ptr)) {
+                NativeError::NoError => None,
+                err @ _ => Some(err)
+            }
+        }
+    }
 }
