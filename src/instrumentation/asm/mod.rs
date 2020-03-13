@@ -37,7 +37,7 @@ impl Class {
             Java1_6 => 50,
             Java1_7 => 51,
             Java1_8 => 52,
-            Java1_9 => 53
+            Java1_9 => 53,
         };
 
         cf.version.minor_version = 0;

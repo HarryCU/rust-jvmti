@@ -85,6 +85,9 @@ impl Agent {
                         self.environment.set_event_notification_mode(VMEvent::GarbageCollectionStart, self.callbacks.garbage_collection_start.is_some());
                         self.environment.set_event_notification_mode(VMEvent::GarbageCollectionFinish, self.callbacks.garbage_collection_finish.is_some());
                         self.environment.set_event_notification_mode(VMEvent::ClassFileLoadHook, self.callbacks.class_file_load_hook.is_some());
+                        self.environment.set_event_notification_mode(VMEvent::CompiledMethodLoad, self.callbacks.compiled_method_load.is_some());
+                        self.environment.set_event_notification_mode(VMEvent::CompiledMethodUnload, self.callbacks.compiled_method_unload.is_some());
+                        self.environment.set_event_notification_mode(VMEvent::DynamicCodeGenerated, self.callbacks.dynamic_code_generated.is_some());
                     }
                     Some(error) => println!("Couldn't register callbacks: {}", translate_error(&error))
                 }
@@ -209,5 +212,19 @@ impl Agent {
 
     pub fn on_class_file_load(&mut self, handler: Option<FnClassFileLoad>) {
         self.callbacks.class_file_load_hook = handler;
+    }
+
+    pub fn on_compiled_method_load(&mut self, handler: Option<FnCompiledMethodLoad>) {
+        self.callbacks.compiled_method_load = handler;
+        self.capabilities.can_generate_compiled_method_load_events = handler.or(self.callbacks.compiled_method_unload).is_some();
+    }
+
+    pub fn on_compiled_method_unload(&mut self, handler: Option<FnCompiledMethodUnload>) {
+        self.callbacks.compiled_method_unload = handler;
+        self.capabilities.can_generate_compiled_method_load_events = handler.or(self.callbacks.compiled_method_load).is_some();
+    }
+
+    pub fn on_dynamic_code_generated(&mut self, handler: Option<FnDynamicCodeGenerated>) {
+        self.callbacks.dynamic_code_generated = handler;
     }
 }

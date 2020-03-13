@@ -1,4 +1,5 @@
 /// A type-safe representation of possible errors
+#[derive(Debug)]
 pub enum NativeError {
     NoError = 0,
     InvalidThread = 10,
@@ -17,7 +18,7 @@ pub enum NativeError {
     OpaqueFrame = 32,
     TypeMismatch = 34,
     InvalidSlot = 35,
-    DUPLICATE = 40,
+    Duplicate = 40,
     NotFound = 41,
     InvalidMonitor = 50,
     NotMonitorOwner = 51,
@@ -74,7 +75,7 @@ pub fn wrap_error(code: u32) -> NativeError {
         32 => NativeError::OpaqueFrame,
         34 => NativeError::TypeMismatch,
         35 => NativeError::InvalidSlot,
-        40 => NativeError::DUPLICATE,
+        40 => NativeError::Duplicate,
         41 => NativeError::NotFound,
         50 => NativeError::InvalidMonitor,
         51 => NativeError::NotMonitorOwner,
@@ -134,7 +135,7 @@ pub fn translate_error(code: &NativeError) -> String {
         /* 32  */ &NativeError::OpaqueFrame => "Information about the frame is not available (e.g. for native frames).",
         /* 34  */ &NativeError::TypeMismatch => "The variable is not an appropriate type for the function used.",
         /* 35  */ &NativeError::InvalidSlot => "Invalid slot.",
-        /* 40  */ &NativeError::DUPLICATE => "Item already set.",
+        /* 40  */ &NativeError::Duplicate => "Item already set.",
         /* 41  */ &NativeError::NotFound => "Desired element (e.g. field or breakpoint) not found.",
         /* 50  */ &NativeError::InvalidMonitor => "Invalid raw monitor.",
         /* 51  */ &NativeError::NotMonitorOwner => "This thread doesn't own the raw monitor.",

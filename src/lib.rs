@@ -199,6 +199,9 @@ pub extern fn Agent_OnLoad(vm: JavaVMPtr, options: MutString, reserved: VoidPtr)
     agent.on_monitor_contended_enter(Some(on_monitor_contended_enter));
     agent.on_monitor_contended_entered(Some(on_monitor_contended_entered));
     //agent.on_class_file_load(Some(on_class_file_load));
+    agent.on_compiled_method_load(None);
+    agent.on_compiled_method_unload(None);
+    agent.on_dynamic_code_generated(None);
 
     agent.update();
 
