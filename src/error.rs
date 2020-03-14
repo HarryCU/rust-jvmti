@@ -56,7 +56,7 @@ pub enum NativeError {
 }
 
 /// Turn a native error code into a type-safe error
-pub fn wrap_error(code: u32) -> NativeError {
+fn wrap_error(code: u32) -> NativeError {
     match code {
         0 => NativeError::NoError,
         10 => NativeError::InvalidThread,
@@ -116,7 +116,7 @@ pub fn wrap_error(code: u32) -> NativeError {
 }
 
 /// Turn native error codes into meaningful and user-readable strings
-pub fn translate_error(code: &NativeError) -> String {
+fn translate_error(code: &NativeError) -> String {
     match code {
         /* 0   */ &NativeError::NoError => "No error has occurred.",
         /* 10  */ &NativeError::InvalidThread => "The passed thread is not a valid thread.",
@@ -170,4 +170,24 @@ pub fn translate_error(code: &NativeError) -> String {
         /* 999999 */ &NativeError::NotImplemented => "This function is not implemented yet",
         /*  */ &NativeError::UnknownError => "Unknown error."
     }.to_string()
+}
+
+pub trait JvmtiErrorTranslator {
+    fn translate(&self) -> NativeError;
+}
+
+pub trait NativeErrorTranslator {
+    fn translate(&self) -> String;
+}
+
+impl JvmtiErrorTranslator for u32 {
+    fn translate(&self) -> NativeError {
+        wrap_error(*self as u32)
+    }
+}
+
+impl NativeErrorTranslator for NativeError {
+    fn translate(&self) -> String {
+        translate_error(self)
+    }
 }

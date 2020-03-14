@@ -1,9 +1,9 @@
 use super::super::native::{JavaVMPtr, JVMTIEnvPtr};
 use super::super::native::jvmti_native::JVMTI_VERSION;
 use super::super::environment::jvmti::{JVMTI, JVMTIEnvironment};
-use super::super::error::{wrap_error, NativeError};
 use std::ffi::c_void;
 use std::ptr;
+use error::{NativeError, JvmtiErrorTranslator};
 
 pub trait JVMF {
     fn get_environment(&self) -> Result<Box<JVMTI>, NativeError>;
@@ -31,7 +31,7 @@ impl JVMF for JVMAgent {
         unsafe {
             let mut void_ptr: *mut c_void = ptr::null_mut() as *mut c_void;
             let penv_ptr: *mut *mut c_void = &mut void_ptr as *mut *mut c_void;
-            let result = wrap_error((**self.vm).GetEnv.unwrap()(self.vm, penv_ptr, JVMTI_VERSION) as u32);
+            let result = ((**self.vm).GetEnv.unwrap()(self.vm, penv_ptr, JVMTI_VERSION) as u32).translate();
 
             match result {
                 NativeError::NoError => {
@@ -39,7 +39,7 @@ impl JVMF for JVMAgent {
                     let env = JVMTIEnvironment::new(env_ptr);
                     return Result::Ok(Box::new(env));
                 }
-                err @ _ => Result::Err(wrap_error(err as u32))
+                err @ _ => Result::Err((err as u32).translate())
             }
         }
     }
@@ -51,7 +51,7 @@ impl JVMF for JVMAgent {
             if error == 0 {
                 Ok(())
             } else {
-                Err(wrap_error(error))
+                Err(error.translate())
             }
         }
     }

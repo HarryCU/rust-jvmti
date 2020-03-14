@@ -1,7 +1,7 @@
 use super::environment::Environment;
 use super::environment::jni::{JNI, JNIEnvironment};
 use super::environment::jvmti::{JVMTI, JVMTIEnvironment};
-use super::error::{translate_error, NativeError};
+use super::error::NativeError;
 use super::event::*;
 use super::method::MethodId;
 use super::native::*;
@@ -14,6 +14,7 @@ use super::util::stringify;
 use super::bytecode::*;
 use std::io::Cursor;
 use std::ffi::c_void;
+use error::NativeErrorTranslator;
 
 pub static mut CALLBACK_TABLE: EventCallbacks = EventCallbacks {
     vm_init: None,
@@ -203,7 +204,7 @@ unsafe extern "C" fn local_cb_vm_object_alloc(jvmti_env: *mut jvmtiEnv, jni_env:
                 Err(err) => {
                     match err {
                         NativeError::WrongPhase => { /* we're in the wrong phase, just ignore this */ }
-                        _ => println!("Couldn't get thread info: {}", translate_error(&err))
+                        _ => println!("Couldn't get thread info: {}", err.translate())
                     }
                 }
             }
@@ -229,7 +230,7 @@ unsafe extern "C" fn local_cb_method_entry(jvmti_env: *mut jvmtiEnv, jni_env: *m
                 Err(err) => {
                     match err {
                         NativeError::WrongPhase => { /* we're in the wrong phase, just ignore this */ }
-                        _ => println!("Couldn't get thread info: {}", translate_error(&err))
+                        _ => println!("Couldn't get thread info: {}", err.translate())
                     }
                 }
             }
@@ -255,7 +256,7 @@ unsafe extern "C" fn local_cb_method_exit(jvmti_env: *mut jvmtiEnv, jni_env: *mu
                 Err(err) => {
                     match err {
                         NativeError::WrongPhase => { /* we're in the wrong phase, just ignore this */ }
-                        _ => println!("Couldn't get thread info: {}", translate_error(&err))
+                        _ => println!("Couldn't get thread info: {}", err.translate())
                     }
                 }
             }
@@ -304,7 +305,7 @@ unsafe extern "C" fn local_cb_monitor_wait(jvmti_env: *mut jvmtiEnv, jni_env: *m
                 Err(err) => {
                     match err {
                         NativeError::WrongPhase => { /* we're in the wrong phase, just ignore this */ }
-                        _ => println!("Couldn't get thread info: {}", translate_error(&err))
+                        _ => println!("Couldn't get thread info: {}", err.translate())
                     }
                 }
             }
@@ -323,7 +324,7 @@ unsafe extern "C" fn local_cb_monitor_waited(jvmti_env: *mut jvmtiEnv, jni_env: 
                 Err(err) => {
                     match err {
                         NativeError::WrongPhase => { /* we're in the wrong phase, just ignore this */ }
-                        _ => println!("Couldn't get thread info: {}", translate_error(&err))
+                        _ => println!("Couldn't get thread info: {}", err.translate())
                     }
                 }
             }
@@ -342,7 +343,7 @@ unsafe extern "C" fn local_cb_monitor_contended_enter(jvmti_env: *mut jvmtiEnv, 
                 Err(err) => {
                     match err {
                         NativeError::WrongPhase => { /* we're in the wrong phase, just ignore this */ }
-                        _ => println!("Couldn't get thread info: {}", translate_error(&err))
+                        _ => println!("Couldn't get thread info: {}", err.translate())
                     }
                 }
             }
@@ -361,7 +362,7 @@ unsafe extern "C" fn local_cb_monitor_contended_entered(jvmti_env: *mut jvmtiEnv
                 Err(err) => {
                     match err {
                         NativeError::WrongPhase => { /* we're in the wrong phase, just ignore this */ }
-                        _ => println!("Couldn't get thread info: {}", translate_error(&err))
+                        _ => println!("Couldn't get thread info: {}", err.translate())
                     }
                 }
             }
@@ -380,7 +381,7 @@ unsafe extern "C" fn local_cb_thread_start(jvmti_env: *mut jvmtiEnv, jni_env: *m
                 Err(err) => {
                     match err {
                         NativeError::WrongPhase => { /* we're in the wrong phase, just ignore this */ }
-                        _ => println!("Couldn't get thread info: {}", translate_error(&err))
+                        _ => println!("Couldn't get thread info: {}", err.translate())
                     }
                 }
             }
@@ -399,7 +400,7 @@ unsafe extern "C" fn local_cb_thread_end(jvmti_env: *mut jvmtiEnv, jni_env: *mut
                 Err(err) => {
                     match err {
                         NativeError::WrongPhase => { /* wrong phase, just ignore this */ }
-                        _ => println!("Couldn't get thread info: {}", translate_error(&err))
+                        _ => println!("Couldn't get thread info: {}", err.translate())
                     }
                 }
             }
@@ -508,7 +509,7 @@ unsafe extern "C" fn local_cb_compiled_method_load(jvmti_env: *mut jvmtiEnv, met
     match CALLBACK_TABLE.compiled_method_load {
         Some(function) => {
             function();
-        },
+        }
         None => println!("No dynamic callback method was found for compiled method load events")
     }
 }
@@ -518,7 +519,7 @@ unsafe extern "C" fn local_cb_compiled_method_unload(jvmti_env: *mut jvmtiEnv, m
     match CALLBACK_TABLE.compiled_method_unload {
         Some(function) => {
             function();
-        },
+        }
         None => println!("No dynamic callback method was found for compiled method unload events")
     }
 }
@@ -531,7 +532,7 @@ unsafe extern "C" fn local_cb_dynamic_code_generated(jvmti_env: *mut jvmtiEnv, n
     match CALLBACK_TABLE.dynamic_code_generated {
         Some(function) => {
             function();
-        },
+        }
         None => println!("No dynamic callback method was found for dynamic code generation events")
     }
 }

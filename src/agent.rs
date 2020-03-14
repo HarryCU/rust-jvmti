@@ -27,7 +27,7 @@ impl Agent {
                 callbacks: EventCallbacks::new(),
                 environment: environment,
             },
-            Err(err) => panic!("FATAL: Could not get JVMTI environment: {}", translate_error(&err))
+            Err(err) => panic!("FATAL: Could not get JVMTI environment: {}", err.translate())
         }
     }
 
@@ -40,7 +40,7 @@ impl Agent {
                 callbacks: EventCallbacks::new(),
                 environment: environment,
             },
-            Err(err) => panic!("FATAL: Could not get JVMTI environment: {}", translate_error(&err))
+            Err(err) => panic!("FATAL: Could not get JVMTI environment: {}", err.translate())
         }
     }
 
@@ -89,10 +89,10 @@ impl Agent {
                         self.environment.set_event_notification_mode(VMEvent::CompiledMethodUnload, self.callbacks.compiled_method_unload.is_some());
                         self.environment.set_event_notification_mode(VMEvent::DynamicCodeGenerated, self.callbacks.dynamic_code_generated.is_some());
                     }
-                    Some(error) => println!("Couldn't register callbacks: {}", translate_error(&error))
+                    Some(error) => println!("Couldn't register callbacks: {}", error.translate())
                 }
             }
-            Err(error) => println!("Couldn't update capabilities: {}", translate_error(&error))
+            Err(error) => println!("Couldn't update capabilities: {}", error.translate())
         }
     }
 

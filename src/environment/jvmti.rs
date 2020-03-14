@@ -1,6 +1,5 @@
 use super::super::capabilities::Capabilities;
 use super::super::class::{ClassId, ClassSignature, JavaType};
-use super::super::error::{wrap_error, NativeError};
 use super::super::event::{EventCallbacks, VMEvent};
 use super::super::event_handler::*;
 use super::super::mem::MemoryAllocation;
@@ -12,6 +11,7 @@ use super::super::version::VersionNumber;
 use super::super::native::{MutString, MutByteArray, JavaClass, JavaObject, JavaInstance, JavaLong, JavaThread, JVMTIEnvPtr};
 use super::super::native::jvmti_native::{Struct__jvmtiThreadInfo, jvmtiCapabilities};
 use std::ptr;
+use error::{JvmtiErrorTranslator, NativeError};
 
 pub trait JVMTI {
     ///
@@ -70,7 +70,7 @@ impl JVMTI for JVMTIEnvironment {
         let caps_ptr: *const jvmtiCapabilities = &native_caps;
 
         unsafe {
-            match wrap_error((**self.jvmti).AddCapabilities.unwrap()(self.jvmti, caps_ptr)) {
+            match (**self.jvmti).AddCapabilities.unwrap()(self.jvmti, caps_ptr).translate() {
                 NativeError::NoError => Ok(self.get_capabilities()),
                 err @ _ => Err(err)
             }
@@ -117,7 +117,7 @@ impl JVMTI for JVMTIEnvironment {
         let (native_callbacks, callbacks_size) = registered_callbacks();
 
         unsafe {
-            match wrap_error((**self.jvmti).SetEventCallbacks.unwrap()(self.jvmti, &native_callbacks, callbacks_size)) {
+            match (**self.jvmti).SetEventCallbacks.unwrap()(self.jvmti, &native_callbacks, callbacks_size).translate() {
                 NativeError::NoError => None,
                 err @ _ => Some(err)
             }
@@ -132,7 +132,7 @@ impl JVMTI for JVMTIEnvironment {
             };
             let sptr: JavaObject = ptr::null_mut();
 
-            match wrap_error((**self.jvmti).SetEventNotificationMode.unwrap()(self.jvmti, mode_i, event as u32, sptr)) {
+            match (**self.jvmti).SetEventNotificationMode.unwrap()(self.jvmti, mode_i, event as u32, sptr).translate() {
                 NativeError::NoError => None,
                 err @ _ => Some(err)
             }
@@ -146,7 +146,7 @@ impl JVMTI for JVMTIEnvironment {
         unsafe {
             match (**self.jvmti).GetThreadInfo {
                 Some(func) => {
-                    match wrap_error(func(self.jvmti, *thread_id, info_ptr)) {
+                    match func(self.jvmti, *thread_id, info_ptr).translate() {
                         NativeError::NoError => Ok(Thread {
                             id: ThreadId { native_id: *thread_id },
                             name: stringify((*info_ptr).name),
@@ -167,7 +167,7 @@ impl JVMTI for JVMTIEnvironment {
         let meta_ptr: *mut JavaClass = &mut jclass_instance;
 
         unsafe {
-            match wrap_error((**self.jvmti).GetMethodDeclaringClass.unwrap()(self.jvmti, method_id.native_id, meta_ptr)) {
+            match (**self.jvmti).GetMethodDeclaringClass.unwrap()(self.jvmti, method_id.native_id, meta_ptr).translate() {
                 NativeError::NoError => Ok(ClassId { native_id: *meta_ptr }),
                 err @ _ => Err(err)
             }
@@ -185,7 +185,7 @@ impl JVMTI for JVMTIEnvironment {
         let mut generic_sig_ptr = &mut generic_sig;
 
         unsafe {
-            match wrap_error((**self.jvmti).GetMethodName.unwrap()(self.jvmti, method_id.native_id, method_ptr, signature_ptr, generic_sig_ptr)) {
+            match (**self.jvmti).GetMethodName.unwrap()(self.jvmti, method_id.native_id, method_ptr, signature_ptr, generic_sig_ptr).translate() {
                 NativeError::NoError => Ok(MethodSignature::new(stringify(*method_ptr))),
                 err @ _ => Err(err)
             }
@@ -196,7 +196,7 @@ impl JVMTI for JVMTIEnvironment {
         let mut size = 0;
         let mut size_ptr = &mut size;
         unsafe {
-            match wrap_error((**self.jvmti).GetArgumentsSize.unwrap()(self.jvmti, method_id.native_id, size_ptr)) {
+            match (**self.jvmti).GetArgumentsSize.unwrap()(self.jvmti, method_id.native_id, size_ptr).translate() {
                 NativeError::NoError => Ok(*size_ptr),
                 err @ _ => Err(err)
             }
@@ -211,7 +211,7 @@ impl JVMTI for JVMTIEnvironment {
         let mut table_ptr = &mut table;
 
         unsafe {
-            match wrap_error((**self.jvmti).GetLocalVariableTable.unwrap()(self.jvmti, method_id.native_id, entry_count_ptr, table_ptr)) {
+            match (**self.jvmti).GetLocalVariableTable.unwrap()(self.jvmti, method_id.native_id, entry_count_ptr, table_ptr).translate() {
                 NativeError::NoError => Ok(LocalVariableTable { entry: *table_ptr, count: *entry_count_ptr }),
                 err @ _ => Err(err)
             }
@@ -227,7 +227,7 @@ impl JVMTI for JVMTIEnvironment {
         let mut location_ptr = &mut location;
 
         unsafe {
-            match wrap_error((**self.jvmti).GetFrameLocation.unwrap()(self.jvmti, thread_id.native_id, depth, method_ptr, location_ptr)) {
+            match (**self.jvmti).GetFrameLocation.unwrap()(self.jvmti, thread_id.native_id, depth, method_ptr, location_ptr).translate() {
                 NativeError::NoError => Ok(*location_ptr),
                 err @ _ => Err(err)
             }
@@ -238,7 +238,7 @@ impl JVMTI for JVMTIEnvironment {
         let mut obj = ptr::null_mut();
 
         unsafe {
-            match wrap_error((**self.jvmti).GetLocalObject.unwrap()(self.jvmti, thread_id.native_id, depth, slot, obj)) {
+            match (**self.jvmti).GetLocalObject.unwrap()(self.jvmti, thread_id.native_id, depth, slot, obj).translate() {
                 NativeError::NoError => Ok(*obj),
                 err @ _ => Err(err)
             }
@@ -250,7 +250,7 @@ impl JVMTI for JVMTIEnvironment {
         let mut tag_ptr = &mut tag;
 
         unsafe {
-            match wrap_error((**self.jvmti).GetTag.unwrap()(self.jvmti, *object_id, tag_ptr)) {
+            match (**self.jvmti).GetTag.unwrap()(self.jvmti, *object_id, tag_ptr).translate() {
                 NativeError::NoError => Ok(*tag_ptr),
                 err @ _ => Err(err)
             }
@@ -264,7 +264,7 @@ impl JVMTI for JVMTIEnvironment {
             let p1: *mut MutString = &mut sig;
             let p2: *mut MutString = &mut native_sig;
 
-            match wrap_error((**self.jvmti).GetClassSignature.unwrap()(self.jvmti, class_id.native_id, p1, p2)) {
+            match (**self.jvmti).GetClassSignature.unwrap()(self.jvmti, class_id.native_id, p1, p2).translate() {
                 NativeError::NoError => Ok(ClassSignature::new(&JavaType::parse(&stringify(sig)).unwrap())),
                 err @ _ => Err(err)
             }
@@ -277,7 +277,7 @@ impl JVMTI for JVMTIEnvironment {
         let mem_ptr: *mut MutByteArray = &mut ptr;
 
         unsafe {
-            match wrap_error((**self.jvmti).Allocate.unwrap()(self.jvmti, size, mem_ptr)) {
+            match (**self.jvmti).Allocate.unwrap()(self.jvmti, size, mem_ptr).translate() {
                 NativeError::NoError => Ok(MemoryAllocation { ptr: ptr, len: len }),
                 err @ _ => Err(err)
             }
@@ -286,7 +286,7 @@ impl JVMTI for JVMTIEnvironment {
 
     fn deallocate(&self, mem_ptr: MutByteArray) -> Option<NativeError> {
         unsafe {
-            match wrap_error((**self.jvmti).Deallocate.unwrap()(self.jvmti, mem_ptr)) {
+            match (**self.jvmti).Deallocate.unwrap()(self.jvmti, mem_ptr).translate() {
                 NativeError::NoError => None,
                 err @ _ => Some(err)
             }
